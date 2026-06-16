@@ -1,0 +1,42 @@
+# Scoring worker — same base as main app, different CMD
+FROM node:20-alpine AS deps
+WORKDIR /app
+
+RUN apk add --no-cache libc6-compat python3 make g++
+
+COPY package*.json ./
+COPY prisma/schema.prisma ./prisma/
+
+RUN npm ci --frozen-lockfile
+
+FROM node:20-alpine AS builder
+WORKDIR /app
+
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+RUN npx prisma generate
+
+# Compile workers/ with tsx for production
+RUN npx tsx --version
+
+FROM node:20-alpine AS runner
+WORKDIR /app
+
+ENV NODE_ENV=production
+
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser  --system --uid 1001 worker
+
+COPY --from=builder /app/node_modules  ./node_modules
+COPY --from=builder /app/src           ./src
+COPY --from=builder /app/workers       ./workers
+COPY --from=builder /app/prisma        ./prisma
+COPY --from=builder /app/tsconfig.json ./tsconfig.json
+
+USER worker
+
+HEALTHCHECK --interval=60s --timeout=10s --start-period=30s --retries=3 \
+  CMD pgrep -f "scoring-worker" || exit 1
+
+CMD ["npx", "tsx", "workers/scoring-worker.ts"]

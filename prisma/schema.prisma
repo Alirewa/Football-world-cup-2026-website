@@ -1,0 +1,474 @@
+// World Cup 2026 Prediction Platform
+// Prisma Schema — FROZEN (use migrations for any changes)
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────────────────────
+// ENUMS
+// ─────────────────────────────────────────────
+
+enum Role {
+  user
+  admin
+}
+
+enum Locale {
+  fa
+  en
+}
+
+enum Theme {
+  dark
+  light
+}
+
+enum AvatarCategory {
+  flag
+  male
+  female
+  neutral
+}
+
+enum MatchStage {
+  group
+  r32
+  r16
+  qf
+  sf
+  third_place
+  final
+}
+
+enum MatchCountry {
+  USA
+  Canada
+  Mexico
+}
+
+enum TeamSlot {
+  home
+  away
+}
+
+enum ScoringJobStatus {
+  pending
+  processing
+  done
+  failed
+}
+
+// ─────────────────────────────────────────────
+// USERS & AUTH
+// ─────────────────────────────────────────────
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  firstName       String    @map("first_name") @db.VarChar(50)
+  lastName        String    @map("last_name") @db.VarChar(50)
+  /// AES-256-GCM ciphertext (base64). Decrypted ONLY in pii.service.ts
+  nationalIdEnc   String?   @map("national_id_enc")
+  /// AES-256-GCM IV nonce (base64, 12 bytes)
+  nationalIdIv    String?   @map("national_id_iv")
+  /// Stored as 09XXXXXXXXX — validated & normalised on input
+  mobile          String    @unique @db.Char(11)
+  email           String?   @unique @db.VarChar(255)
+  role            Role      @default(user)
+  locale          Locale    @default(fa)
+  theme           Theme     @default(dark)
+  isActive        Boolean   @default(true) @map("is_active")
+  /// Soft-delete: set on DELETE /api/v1/auth/me, mobile/email nulled
+  deletedAt       DateTime? @map("deleted_at")
+  createdAt       DateTime  @default(now()) @map("created_at")
+  updatedAt       DateTime  @updatedAt @map("updated_at")
+
+  avatarId        String?   @map("avatar_id") @db.Uuid
+  avatar          Avatar?   @relation(fields: [avatarId], references: [id])
+
+  predictions     Prediction[]
+  refreshTokens   RefreshToken[]
+  auditLogs       AdminAuditLog[]
+  finalizedMatches Match[]
+  piiLogsAsAccessor  PiiAccessLog[] @relation("accessor")
+  piiLogsAsAccessed  PiiAccessLog[] @relation("accessed")
+  updatedCmsPages    CmsPage[]
+  updatedRules       Rule[]  @relation("RuleUpdatedBy")
+  updatedPrizes      Prize[] @relation("PrizeUpdatedBy")
+
+  @@index([role])
+  @@index([isActive])
+  @@map("users")
+}
+
+model OtpSession {
+  id        String    @id @default(uuid()) @db.Uuid
+  /// Stored as 09XXXXXXXXX
+  mobile    String    @unique @db.Char(11)
+  /// bcrypt hash of the 6-digit code
+  codeHash  String    @map("code_hash")
+  /// "login" | "register"
+  purpose   String    @db.VarChar(10)
+  attempts  Int       @default(0)
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  ipAddress String?   @map("ip_address") @db.VarChar(45)
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  @@index([mobile, expiresAt(sort: Desc)])
+  @@map("otp_sessions")
+}
+
+/// Server-side refresh token store for revocation
+model RefreshToken {
+  /// jti (JWT ID) — also used as the JWT's `jti` claim
+  jti        String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  issuedAt   DateTime  @default(now()) @map("issued_at")
+  expiresAt  DateTime  @map("expires_at")
+  /// NULL = active. Set on logout or role-change.
+  revokedAt  DateTime? @map("revoked_at")
+  deviceHint String?   @map("device_hint") @db.VarChar(200)
+  ipAddress  String?   @map("ip_address") @db.VarChar(45)
+
+  @@index([expiresAt])
+  @@map("refresh_tokens")
+}
+
+// ─────────────────────────────────────────────
+// TOURNAMENT
+// ─────────────────────────────────────────────
+
+/// Replaces all magic numbers (team_count, group_count, scoring_exact, etc.)
+model TournamentConfig {
+  key   String @id @db.VarChar(100)
+  value String
+
+  @@map("tournament_config")
+}
+
+model Group {
+  id    String @id @default(uuid()) @db.Uuid
+  /// A through L
+  name  String @unique @db.Char(1)
+
+  teams Team[]
+
+  @@map("groups")
+}
+
+model Team {
+  id       String  @id @default(uuid()) @db.Uuid
+  nameEn   String  @map("name_en") @db.VarChar(100)
+  nameFa   String  @map("name_fa") @db.VarChar(100)
+  /// 3-letter FIFA code e.g. "IRN", "BRA"
+  fifaCode String  @unique @map("fifa_code") @db.Char(3)
+  flagUrl  String? @map("flag_url")
+
+  groupId  String? @map("group_id") @db.Uuid
+  group    Group?  @relation(fields: [groupId], references: [id])
+
+  homeMatches Match[]  @relation("HomeTeam")
+  awayMatches Match[]  @relation("AwayTeam")
+  avatars     Avatar[]
+
+  @@map("teams")
+}
+
+model Match {
+  id                 String       @id @default(uuid()) @db.Uuid
+  stage              MatchStage
+  /// e.g. "GRP-A-M1", "R32-M1", "QF-M1", "FINAL"
+  bracketSlot        String       @map("bracket_slot") @db.VarChar(20)
+
+  homeTeamId         String?      @map("home_team_id") @db.Uuid
+  homeTeam           Team?        @relation("HomeTeam", fields: [homeTeamId], references: [id])
+  awayTeamId         String?      @map("away_team_id") @db.Uuid
+  awayTeam           Team?        @relation("AwayTeam", fields: [awayTeamId], references: [id])
+
+  /// NULL until finalized
+  homeScore          Int?         @map("home_score")
+  awayScore          Int?         @map("away_score")
+
+  kickoffAt          DateTime     @map("kickoff_at")
+  /// Admin can set earlier than kickoffAt; defaults to kickoffAt in seed
+  predictionLockedAt DateTime     @map("prediction_locked_at")
+
+  venue              String       @db.VarChar(200)
+  city               String       @db.VarChar(100)
+  country            MatchCountry
+
+  isFinalized        Boolean      @default(false) @map("is_finalized")
+  /// Set atomically: UPDATE WHERE finalized_at IS NULL — idempotency guard
+  finalizedAt        DateTime?    @map("finalized_at")
+  finalizedBy        String?      @map("finalized_by") @db.Uuid
+  finalizedByUser    User?        @relation(fields: [finalizedBy], references: [id])
+
+  createdAt          DateTime     @default(now()) @map("created_at")
+
+  predictions        Prediction[]
+  scoringJobs        ScoringJob[]
+  sourceAdvancements BracketAdvancement[] @relation("SourceMatch")
+  targetAdvancements BracketAdvancement[] @relation("TargetMatch")
+
+  @@index([kickoffAt])
+  @@index([stage])
+  @@index([isFinalized, kickoffAt])
+  @@map("matches")
+}
+
+/// Maps winner/loser of one match to a slot in the next match (knockout bracket)
+model BracketAdvancement {
+  id            String   @id @default(uuid()) @db.Uuid
+  sourceMatchId String   @map("source_match_id") @db.Uuid
+  sourceMatch   Match    @relation("SourceMatch", fields: [sourceMatchId], references: [id])
+  targetMatchId String   @map("target_match_id") @db.Uuid
+  targetMatch   Match    @relation("TargetMatch", fields: [targetMatchId], references: [id])
+  /// home or away slot in the target match
+  teamSlot      TeamSlot @map("team_slot")
+  /// true = winner advances; false = loser (used for 3rd-place match)
+  isWinner      Boolean  @default(true) @map("is_winner")
+
+  @@unique([sourceMatchId, isWinner])
+  @@map("bracket_advancement")
+}
+
+// ─────────────────────────────────────────────
+// PREDICTIONS
+// ─────────────────────────────────────────────
+
+model Prediction {
+  id           String    @id @default(uuid()) @db.Uuid
+  userId       String    @map("user_id") @db.Uuid
+  user         User      @relation(fields: [userId], references: [id])
+  matchId      String    @map("match_id") @db.Uuid
+  match        Match     @relation(fields: [matchId], references: [id])
+  homeScore    Int       @map("home_score")
+  awayScore    Int       @map("away_score")
+  /// NULL until match is finalized and scoring worker runs
+  pointsEarned Int?      @map("points_earned")
+  submittedAt  DateTime  @default(now()) @map("submitted_at")
+
+  edits        PredictionEdit[]
+
+  /// DB-level uniqueness — one prediction per user per match
+  @@unique([userId, matchId], name: "uq_prediction_user_match")
+  @@index([matchId])
+  @@index([userId, pointsEarned(sort: Desc)])
+  @@map("predictions")
+}
+
+model PredictionEdit {
+  id           String     @id @default(uuid()) @db.Uuid
+  predictionId String     @map("prediction_id") @db.Uuid
+  prediction   Prediction @relation(fields: [predictionId], references: [id])
+  oldHome      Int        @map("old_home")
+  oldAway      Int        @map("old_away")
+  newHome      Int        @map("new_home")
+  newAway      Int        @map("new_away")
+  editedAt     DateTime   @default(now()) @map("edited_at")
+
+  @@map("prediction_edits")
+}
+
+// ─────────────────────────────────────────────
+// CONTENT & CMS
+// ─────────────────────────────────────────────
+
+model Avatar {
+  id        String         @id @default(uuid()) @db.Uuid
+  category  AvatarCategory
+  name      String         @db.VarChar(100)
+  /// Stored as MinIO/Arvan Object Storage object key — served via signed URL
+  url       String
+  teamId    String?        @map("team_id") @db.Uuid
+  team      Team?          @relation(fields: [teamId], references: [id])
+  sortOrder Int            @default(0) @map("sort_order")
+  isActive  Boolean        @default(true) @map("is_active")
+
+  users     User[]
+
+  @@map("avatars")
+}
+
+model CmsPage {
+  id          String   @id @default(uuid()) @db.Uuid
+  /// URL slug: "rules" | "prizes" | "privacy" | "terms"
+  slug        String   @unique @db.VarChar(100)
+  titleFa     String   @map("title_fa") @db.VarChar(200)
+  titleEn     String   @map("title_en") @db.VarChar(200)
+  /// TipTap JSON document — server-sanitized with isomorphic-dompurify before save
+  contentFa   Json     @map("content_fa")
+  contentEn   Json     @map("content_en")
+  updatedById String?  @map("updated_by") @db.Uuid
+  updatedBy   User?    @relation(fields: [updatedById], references: [id])
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@map("cms_pages")
+}
+
+model Announcement {
+  id          String    @id @default(uuid()) @db.Uuid
+  titleFa     String    @map("title_fa") @db.VarChar(200)
+  titleEn     String    @map("title_en") @db.VarChar(200)
+  bodyFa      String    @map("body_fa") @db.Text
+  bodyEn      String    @map("body_en") @db.Text
+  isPublished Boolean   @default(false) @map("is_published")
+  publishedAt DateTime? @map("published_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@index([publishedAt(sort: Desc)])
+  @@map("announcements")
+}
+
+// ─────────────────────────────────────────────
+// SETTINGS
+// ─────────────────────────────────────────────
+
+model SiteSetting {
+  key   String @id @db.VarChar(100)
+  value String @db.Text
+
+  @@map("site_settings")
+}
+
+model SmsLog {
+  id        String   @id @default(uuid()) @db.Uuid
+  mobile    String   @db.Char(11)
+  message   String   @db.Text
+  provider  String   @db.VarChar(50)
+  messageId String?  @map("message_id") @db.VarChar(200)
+  status    String   @db.VarChar(50)
+  sentAt    DateTime @default(now()) @map("sent_at")
+
+  @@index([mobile, sentAt(sort: Desc)])
+  @@map("sms_log")
+}
+
+// ─────────────────────────────────────────────
+// ADMIN & AUDIT
+// ─────────────────────────────────────────────
+
+/// Append-only — app DB user has NO UPDATE/DELETE permission on this table
+model AdminAuditLog {
+  id         BigInt   @id @default(autoincrement())
+  adminId    String   @map("admin_id") @db.Uuid
+  admin      User     @relation(fields: [adminId], references: [id])
+  action     String   @db.VarChar(100)
+  entityType String   @map("entity_type") @db.VarChar(50)
+  entityId   String   @map("entity_id") @db.VarChar(100)
+  beforeJson Json?    @map("before_json")
+  afterJson  Json?    @map("after_json")
+  ipAddress  String?  @map("ip_address") @db.VarChar(45)
+  userAgent  String?  @map("user_agent") @db.VarChar(500)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([adminId, createdAt(sort: Desc)])
+  @@index([entityType, entityId, createdAt(sort: Desc)])
+  @@map("admin_audit_log")
+}
+
+/// Tracks BullMQ scoring job state for admin dashboard progress bar
+model ScoringJob {
+  id           String           @id @default(uuid()) @db.Uuid
+  matchId      String           @map("match_id") @db.Uuid
+  match        Match            @relation(fields: [matchId], references: [id])
+  status       ScoringJobStatus @default(pending)
+  totalRows    Int?             @map("total_rows")
+  processed    Int              @default(0)
+  startedAt    DateTime?        @map("started_at")
+  completedAt  DateTime?        @map("completed_at")
+  errorMessage String?          @map("error_message") @db.Text
+
+  @@map("scoring_jobs")
+}
+
+/// Audit every national ID decryption — logged in pii.service.ts
+model PiiAccessLog {
+  id             BigInt   @id @default(autoincrement())
+  accessorId     String   @map("accessor_id") @db.Uuid
+  accessor       User     @relation("accessor", fields: [accessorId], references: [id])
+  accessedUserId String   @map("accessed_user_id") @db.Uuid
+  accessedUser   User     @relation("accessed", fields: [accessedUserId], references: [id])
+  reason         String   @db.VarChar(200)
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("pii_access_log")
+}
+
+// ─────────────────────────────────────────────
+// PHASE 3 — NEW MODELS
+// ─────────────────────────────────────────────
+
+/// Supported display languages — managed via admin panel
+model Language {
+  code       String  @id @db.VarChar(5)          // "fa", "en"
+  name       String  @db.VarChar(50)              // "English"
+  nativeName String  @map("native_name") @db.VarChar(50) // "فارسی"
+  direction  String  @default("ltr") @db.VarChar(3)      // "ltr" | "rtl"
+  isActive   Boolean @default(true) @map("is_active")
+  isDefault  Boolean @default(false) @map("is_default")
+  sortOrder  Int     @default(0) @map("sort_order")
+
+  @@map("languages")
+}
+
+/// SMTP email configuration — stored in DB so admin can update without redeployment
+model EmailSetting {
+  key   String @id @db.VarChar(100)
+  value String @db.Text
+  // Keys: smtp_host, smtp_port, smtp_user, smtp_pass, smtp_from, smtp_secure, enabled
+
+  @@map("email_settings")
+}
+
+/// SMS provider configuration — stored in DB for hot-reload without redeployment
+model SmsSetting {
+  key   String @id @db.VarChar(100)
+  value String @db.Text
+  // Keys: provider, api_key, sender, template_otp, fallback_enabled
+
+  @@map("sms_settings")
+}
+
+/// Platform rules — TipTap HTML content, displayed on /rules page
+model Rule {
+  id          String   @id @default(uuid()) @db.Uuid
+  titleFa     String   @map("title_fa") @db.VarChar(200)
+  titleEn     String   @map("title_en") @db.VarChar(200)
+  contentFa   String   @map("content_fa") @db.Text
+  contentEn   String   @map("content_en") @db.Text
+  sortOrder   Int      @default(0) @map("sort_order")
+  isActive    Boolean  @default(true) @map("is_active")
+  updatedById String?  @map("updated_by") @db.Uuid
+  updatedBy   User?    @relation("RuleUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([sortOrder])
+  @@map("rules")
+}
+
+/// Prize tiers displayed on /prizes page
+model Prize {
+  id           String   @id @default(uuid()) @db.Uuid
+  titleFa      String   @map("title_fa") @db.VarChar(200)
+  titleEn      String   @map("title_en") @db.VarChar(200)
+  contentFa    String   @map("content_fa") @db.Text
+  contentEn    String   @map("content_en") @db.Text
+  rankPosition Int?     @map("rank_position")              // 1 = 1st place, 2 = 2nd, etc.
+  prizeValue   String?  @map("prize_value") @db.VarChar(100) // "50,000,000 تومان"
+  isActive     Boolean  @default(true) @map("is_active")
+  sortOrder    Int      @default(0) @map("sort_order")
+  updatedById  String?  @map("updated_by") @db.Uuid
+  updatedBy    User?    @relation("PrizeUpdatedBy", fields: [updatedById], references: [id])
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@index([sortOrder])
+  @@map("prizes")
+}

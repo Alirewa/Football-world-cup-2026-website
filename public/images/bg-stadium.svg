@@ -1,0 +1,240 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 600" preserveAspectRatio="xMidYMid slice">
+  <defs>
+    <!-- Stadium night sky gradient -->
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#04090f"/>
+      <stop offset="45%" stop-color="#071520"/>
+      <stop offset="100%" stop-color="#071a0e"/>
+    </linearGradient>
+    <!-- Stadium lights glow -->
+    <radialGradient id="light-left" cx="20%" cy="15%" r="35%">
+      <stop offset="0%" stop-color="#b8ffd0" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0E7A43" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="light-right" cx="80%" cy="15%" r="35%">
+      <stop offset="0%" stop-color="#b8ffd0" stop-opacity="0.18"/>
+      <stop offset="100%" stop-color="#0E7A43" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="pitch-glow" cx="50%" cy="75%" r="55%">
+      <stop offset="0%" stop-color="#0E7A43" stop-opacity="0.7"/>
+      <stop offset="50%" stop-color="#085c31" stop-opacity="0.5"/>
+      <stop offset="100%" stop-color="#000" stop-opacity="0"/>
+    </radialGradient>
+    <!-- Crowd gradient overlay -->
+    <linearGradient id="crowd-fade" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#04090f" stop-opacity="0.9"/>
+      <stop offset="60%" stop-color="#04090f" stop-opacity="0.3"/>
+      <stop offset="100%" stop-color="#071a0e" stop-opacity="0.1"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background sky -->
+  <rect width="1440" height="600" fill="url(#sky)"/>
+
+  <!-- Stadium lights glow from top-left and top-right -->
+  <rect width="1440" height="600" fill="url(#light-left)"/>
+  <rect width="1440" height="600" fill="url(#light-right)"/>
+
+  <!-- Stars -->
+  <g fill="white" opacity="0.4">
+    <circle cx="120" cy="40" r="1"/>
+    <circle cx="250" cy="25" r="0.8"/>
+    <circle cx="380" cy="55" r="1.2"/>
+    <circle cx="520" cy="30" r="0.8"/>
+    <circle cx="680" cy="18" r="1"/>
+    <circle cx="820" cy="45" r="0.7"/>
+    <circle cx="960" cy="22" r="1.1"/>
+    <circle cx="1100" cy="38" r="0.9"/>
+    <circle cx="1240" cy="28" r="1"/>
+    <circle cx="1380" cy="50" r="0.8"/>
+    <circle cx="190" cy="78" r="0.7"/>
+    <circle cx="440" cy="85" r="0.9"/>
+    <circle cx="700" cy="72" r="0.8"/>
+    <circle cx="950" cy="88" r="0.7"/>
+    <circle cx="1200" cy="75" r="1"/>
+    <circle cx="70" cy="95" r="0.6"/>
+    <circle cx="330" cy="110" r="0.8"/>
+    <circle cx="580" cy="98" r="0.7"/>
+    <circle cx="850" cy="105" r="0.9"/>
+    <circle cx="1310" cy="92" r="0.8"/>
+  </g>
+
+  <!-- Stadium structure - upper tier crowd (left) -->
+  <path d="M0,160 Q180,130 360,140 Q420,135 480,145 L480,280 Q360,260 180,270 Q90,275 0,265 Z"
+        fill="#0a1a2a" opacity="0.95"/>
+  <!-- Upper tier crowd (right) -->
+  <path d="M1440,160 Q1260,130 1080,140 Q1020,135 960,145 L960,280 Q1080,260 1260,270 Q1350,275 1440,265 Z"
+        fill="#0a1a2a" opacity="0.95"/>
+
+  <!-- Crowd dots (left section) -->
+  <g opacity="0.6">
+    <g fill="#1a3a5c">
+      <circle cx="60" cy="175" r="4"/><circle cx="90" cy="168" r="3.5"/><circle cx="120" cy="173" r="4"/>
+      <circle cx="150" cy="166" r="3.5"/><circle cx="180" cy="171" r="4"/><circle cx="210" cy="164" r="3.5"/>
+      <circle cx="240" cy="169" r="4"/><circle cx="270" cy="162" r="3.5"/><circle cx="300" cy="167" r="4"/>
+      <circle cx="330" cy="160" r="3.5"/><circle cx="360" cy="165" r="4"/><circle cx="390" cy="158" r="3.5"/>
+      <circle cx="420" cy="163" r="4"/><circle cx="450" cy="156" r="3.5"/>
+    </g>
+    <g fill="#15304f">
+      <circle cx="45" cy="190" r="4.5"/><circle cx="78" cy="183" r="4"/><circle cx="112" cy="188" r="4.5"/>
+      <circle cx="145" cy="181" r="4"/><circle cx="178" cy="186" r="4.5"/><circle cx="212" cy="179" r="4"/>
+      <circle cx="245" cy="184" r="4.5"/><circle cx="278" cy="177" r="4"/><circle cx="312" cy="182" r="4.5"/>
+      <circle cx="345" cy="175" r="4"/><circle cx="378" cy="180" r="4.5"/><circle cx="412" cy="173" r="4"/>
+      <circle cx="445" cy="178" r="4.5"/>
+    </g>
+    <!-- Colored fan rows -->
+    <g fill="#0d4a8c" opacity="0.8">
+      <circle cx="55" cy="205" r="5"/><circle cx="88" cy="198" r="4.5"/><circle cx="122" cy="203" r="5"/>
+      <circle cx="155" cy="196" r="4.5"/><circle cx="188" cy="201" r="5"/><circle cx="222" cy="194" r="4.5"/>
+      <circle cx="255" cy="199" r="5"/><circle cx="288" cy="192" r="4.5"/><circle cx="322" cy="197" r="5"/>
+      <circle cx="355" cy="190" r="4.5"/><circle cx="388" cy="195" r="5"/><circle cx="422" cy="188" r="4.5"/>
+      <circle cx="455" cy="193" r="5"/>
+    </g>
+    <g fill="#c41e3a" opacity="0.7">
+      <circle cx="65" cy="220" r="5"/><circle cx="100" cy="213" r="4.5"/><circle cx="135" cy="218" r="5"/>
+      <circle cx="170" cy="211" r="4.5"/><circle cx="205" cy="216" r="5"/><circle cx="240" cy="209" r="4.5"/>
+      <circle cx="275" cy="214" r="5"/><circle cx="310" cy="207" r="4.5"/><circle cx="345" cy="212" r="5"/>
+      <circle cx="380" cy="205" r="4.5"/><circle cx="415" cy="210" r="5"/><circle cx="450" cy="203" r="4.5"/>
+    </g>
+    <g fill="#f5b700" opacity="0.6">
+      <circle cx="70" cy="235" r="5"/><circle cx="106" cy="228" r="4.5"/><circle cx="142" cy="233" r="5"/>
+      <circle cx="178" cy="226" r="4.5"/><circle cx="214" cy="231" r="5"/><circle cx="250" cy="224" r="4.5"/>
+      <circle cx="286" cy="229" r="5"/><circle cx="322" cy="222" r="4.5"/><circle cx="358" cy="227" r="5"/>
+      <circle cx="394" cy="220" r="4.5"/><circle cx="430" cy="225" r="5"/><circle cx="460" cy="218" r="4.5"/>
+    </g>
+    <!-- More crowd rows -->
+    <g fill="#1a4a2a" opacity="0.7">
+      <circle cx="60" cy="250" r="5.5"/><circle cx="96" cy="243" r="5"/><circle cx="133" cy="248" r="5.5"/>
+      <circle cx="169" cy="241" r="5"/><circle cx="206" cy="246" r="5.5"/><circle cx="242" cy="239" r="5"/>
+      <circle cx="279" cy="244" r="5.5"/><circle cx="315" cy="237" r="5"/><circle cx="352" cy="242" r="5.5"/>
+      <circle cx="388" cy="235" r="5"/><circle cx="425" cy="240" r="5.5"/><circle cx="455" cy="233" r="5"/>
+    </g>
+  </g>
+
+  <!-- Crowd (right section) -->
+  <g opacity="0.6" transform="scale(-1,1) translate(-1440,0)">
+    <g fill="#1a3a5c">
+      <circle cx="60" cy="175" r="4"/><circle cx="90" cy="168" r="3.5"/><circle cx="120" cy="173" r="4"/>
+      <circle cx="150" cy="166" r="3.5"/><circle cx="180" cy="171" r="4"/><circle cx="210" cy="164" r="3.5"/>
+      <circle cx="240" cy="169" r="4"/><circle cx="270" cy="162" r="3.5"/><circle cx="300" cy="167" r="4"/>
+      <circle cx="330" cy="160" r="3.5"/><circle cx="360" cy="165" r="4"/><circle cx="390" cy="158" r="3.5"/>
+      <circle cx="420" cy="163" r="4"/><circle cx="450" cy="156" r="3.5"/>
+    </g>
+    <g fill="#0d4a8c" opacity="0.8">
+      <circle cx="55" cy="205" r="5"/><circle cx="88" cy="198" r="4.5"/><circle cx="122" cy="203" r="5"/>
+      <circle cx="155" cy="196" r="4.5"/><circle cx="188" cy="201" r="5"/><circle cx="222" cy="194" r="4.5"/>
+      <circle cx="255" cy="199" r="5"/><circle cx="288" cy="192" r="4.5"/><circle cx="322" cy="197" r="5"/>
+      <circle cx="355" cy="190" r="4.5"/><circle cx="388" cy="195" r="5"/><circle cx="422" cy="188" r="4.5"/>
+      <circle cx="455" cy="193" r="5"/>
+    </g>
+    <g fill="#c41e3a" opacity="0.7">
+      <circle cx="65" cy="220" r="5"/><circle cx="100" cy="213" r="4.5"/><circle cx="135" cy="218" r="5"/>
+      <circle cx="170" cy="211" r="4.5"/><circle cx="205" cy="216" r="5"/><circle cx="240" cy="209" r="4.5"/>
+      <circle cx="275" cy="214" r="5"/><circle cx="310" cy="207" r="4.5"/><circle cx="345" cy="212" r="5"/>
+      <circle cx="380" cy="205" r="4.5"/><circle cx="415" cy="210" r="5"/><circle cx="450" cy="203" r="4.5"/>
+    </g>
+    <g fill="#f5b700" opacity="0.6">
+      <circle cx="70" cy="235" r="5"/><circle cx="106" cy="228" r="4.5"/><circle cx="142" cy="233" r="5"/>
+      <circle cx="178" cy="226" r="4.5"/><circle cx="214" cy="231" r="5"/><circle cx="250" cy="224" r="4.5"/>
+      <circle cx="286" cy="229" r="5"/><circle cx="322" cy="222" r="4.5"/><circle cx="358" cy="227" r="5"/>
+      <circle cx="394" cy="220" r="4.5"/><circle cx="430" cy="225" r="5"/>
+    </g>
+    <g fill="#1a4a2a" opacity="0.7">
+      <circle cx="60" cy="250" r="5.5"/><circle cx="96" cy="243" r="5"/><circle cx="133" cy="248" r="5.5"/>
+      <circle cx="169" cy="241" r="5"/><circle cx="206" cy="246" r="5.5"/><circle cx="242" cy="239" r="5"/>
+      <circle cx="279" cy="244" r="5.5"/><circle cx="315" cy="237" r="5"/><circle cx="352" cy="242" r="5.5"/>
+      <circle cx="388" cy="235" r="5"/><circle cx="425" cy="240" r="5.5"/>
+    </g>
+  </g>
+
+  <!-- Football pitch -->
+  <!-- Pitch base - bright green -->
+  <rect x="200" y="260" width="1040" height="340" fill="#0E7A43" rx="4"/>
+  <!-- Dark stripe pattern (alternating) -->
+  <rect x="200" y="260" width="130" height="340" fill="#0a6837"/>
+  <rect x="330" y="260" width="130" height="340" fill="#0E7A43"/>
+  <rect x="460" y="260" width="130" height="340" fill="#0a6837"/>
+  <rect x="590" y="260" width="130" height="340" fill="#0E7A43"/>
+  <rect x="720" y="260" width="130" height="340" fill="#0a6837"/>
+  <rect x="850" y="260" width="130" height="340" fill="#0E7A43"/>
+  <rect x="980" y="260" width="130" height="340" fill="#0a6837"/>
+  <rect x="1110" y="260" width="130" height="340" fill="#0E7A43"/>
+
+  <!-- Pitch markings (white lines) -->
+  <!-- Outer boundary -->
+  <rect x="220" y="275" width="1000" height="310" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"/>
+  <!-- Center line -->
+  <line x1="720" y1="275" x2="720" y2="585" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"/>
+  <!-- Center circle -->
+  <circle cx="720" cy="430" r="70" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"/>
+  <!-- Center spot -->
+  <circle cx="720" cy="430" r="4" fill="rgba(255,255,255,0.7)"/>
+  <!-- Penalty box left -->
+  <rect x="220" y="340" width="165" height="180" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"/>
+  <!-- Goal box left -->
+  <rect x="220" y="383" width="60" height="94" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <!-- Penalty arc left -->
+  <path d="M 385 345 A 70 70 0 0 1 385 515" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2" clip-path="url(#rightclip)"/>
+  <!-- Penalty spot left -->
+  <circle cx="330" cy="430" r="3.5" fill="rgba(255,255,255,0.7)"/>
+  <!-- Penalty box right -->
+  <rect x="1055" y="340" width="165" height="180" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2.5"/>
+  <!-- Goal box right -->
+  <rect x="1160" y="383" width="60" height="94" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <!-- Penalty arc right -->
+  <path d="M 1055 345 A 70 70 0 0 0 1055 515" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <!-- Penalty spot right -->
+  <circle cx="1110" cy="430" r="3.5" fill="rgba(255,255,255,0.7)"/>
+  <!-- Corner arcs -->
+  <path d="M 220 293 A 15 15 0 0 1 237 275" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <path d="M 1203 275 A 15 15 0 0 1 1220 293" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <path d="M 1220 567 A 15 15 0 0 1 1203 585" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+  <path d="M 237 585 A 15 15 0 0 1 220 567" fill="none" stroke="rgba(255,255,255,0.7)" stroke-width="2"/>
+
+  <!-- Goals -->
+  <rect x="208" y="400" width="12" height="60" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+  <rect x="1220" y="400" width="12" height="60" fill="none" stroke="rgba(255,255,255,0.5)" stroke-width="2"/>
+
+  <!-- Stadium lights (light towers) -->
+  <g opacity="0.9">
+    <!-- Left tower -->
+    <rect x="165" y="100" width="8" height="165" fill="#1a2a3a"/>
+    <rect x="158" y="95" width="22" height="12" fill="#2a3a4a" rx="2"/>
+    <circle cx="162" cy="95" r="5" fill="#fffacd" opacity="0.9"/>
+    <circle cx="169" cy="95" r="5" fill="#fffacd" opacity="0.9"/>
+    <circle cx="176" cy="95" r="5" fill="#fffacd" opacity="0.9"/>
+    <circle cx="169" cy="88" r="5" fill="#fffacd" opacity="0.9"/>
+    <!-- Right tower -->
+    <rect x="1267" y="100" width="8" height="165" fill="#1a2a3a"/>
+    <rect x="1260" y="95" width="22" height="12" fill="#2a3a4a" rx="2"/>
+    <circle cx="1264" cy="95" r="5" fill="#fffacd" opacity="0.9"/>
+    <circle cx="1271" cy="95" r="5" fill="#fffacd" opacity="0.9"/>
+    <circle cx="1278" cy="95" r="5" fill="#fffacd" opacity="0.9"/>
+    <circle cx="1271" cy="88" r="5" fill="#fffacd" opacity="0.9"/>
+  </g>
+
+  <!-- Light beams from towers to pitch -->
+  <g opacity="0.08">
+    <polygon points="169,100 220,265 480,265" fill="#fffacd"/>
+    <polygon points="1271,100 1220,265 960,265" fill="#fffacd"/>
+  </g>
+
+  <!-- Pitch glow overlay -->
+  <rect width="1440" height="600" fill="url(#pitch-glow)" opacity="0.5"/>
+
+  <!-- Crowd fade at top -->
+  <rect width="1440" height="600" fill="url(#crowd-fade)"/>
+
+  <!-- Side stands (left and right walls) -->
+  <rect x="0" y="255" width="200" height="345" fill="#071218" opacity="0.95"/>
+  <rect x="1240" y="255" width="200" height="345" fill="#071218" opacity="0.95"/>
+
+  <!-- Subtle vignette -->
+  <defs>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="transparent"/>
+      <stop offset="100%" stop-color="rgba(0,0,0,0.6)"/>
+    </radialGradient>
+  </defs>
+  <rect width="1440" height="600" fill="url(#vignette)"/>
+</svg>

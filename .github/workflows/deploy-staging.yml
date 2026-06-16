@@ -1,0 +1,151 @@
+name: Deploy to Staging
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: staging-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Lint + Type-check ─────────────────────────────────────────
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --frozen-lockfile
+      - run: npm run lint
+      - run: npm run type-check
+
+  # ── Unit tests ────────────────────────────────────────────────
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --frozen-lockfile
+      - run: npm test -- --coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/
+
+  # ── Prisma migrate test ───────────────────────────────────────
+  migrate-test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB:       football_test
+          POSTGRES_USER:     football
+          POSTGRES_PASSWORD: testpassword
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+      - run: npm ci --frozen-lockfile
+      - run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://football:testpassword@localhost:5432/football_test
+
+  # ── Build Docker images ───────────────────────────────────────
+  build:
+    needs: [lint, test, migrate-test]
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push'
+    outputs:
+      image-tag: ${{ steps.meta.outputs.tags }}
+      sha: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=sha,prefix=sha-
+            type=raw,value=staging
+
+      - name: Build and push app image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+      - name: Build and push worker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: docker/Dockerfile.worker
+          push: true
+          tags: ghcr.io/${{ github.repository }}-worker:sha-${{ github.sha }}
+          cache-from: type=gha
+          cache-to:   type=gha,mode=max
+
+  # ── Deploy to staging ─────────────────────────────────────────
+  deploy-staging:
+    needs: [build]
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - name: Deploy to staging VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host:        ${{ secrets.STAGING_HOST }}
+          username:    ${{ secrets.STAGING_USER }}
+          key:         ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/football
+
+            # Pull latest images
+            IMAGE_TAG=sha-${{ github.sha }}
+            echo "IMAGE_TAG=${IMAGE_TAG}" > .env.image
+
+            docker compose -f docker/docker-compose.prod.yml pull nextjs worker
+
+            # Run migrations before switching traffic
+            docker compose -f docker/docker-compose.prod.yml run --rm \
+              -e DATABASE_URL=$DATABASE_URL \
+              nextjs npx prisma migrate deploy
+
+            # Rolling update
+            docker compose -f docker/docker-compose.prod.yml up -d --no-deps nextjs worker
+
+            # Smoke test
+            sleep 15
+            curl -f http://localhost/api/v1/health || (docker compose logs nextjs && exit 1)
+
+            echo "Staging deploy complete: ${IMAGE_TAG}"

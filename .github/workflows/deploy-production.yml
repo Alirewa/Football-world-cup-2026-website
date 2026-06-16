@@ -1,0 +1,78 @@
+name: Deploy to Production
+
+on:
+  workflow_dispatch:
+    inputs:
+      image-tag:
+        description: 'Docker image tag to deploy (e.g. sha-abc1234)'
+        required: true
+      confirm:
+        description: 'Type "deploy" to confirm production deployment'
+        required: true
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate confirmation
+        if: github.event.inputs.confirm != 'deploy'
+        run: |
+          echo "Confirmation text must be exactly 'deploy'"
+          exit 1
+
+  # ── Production deploy (requires manual approval via GitHub Environment) ──
+  deploy-production:
+    needs: [validate]
+    runs-on: ubuntu-latest
+    environment: production   # GitHub requires manual approval for this environment
+    concurrency:
+      group: production
+      cancel-in-progress: false
+    steps:
+      - name: Deploy to production VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host:     ${{ secrets.PROD_HOST }}
+          username: ${{ secrets.PROD_USER }}
+          key:      ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -e
+            cd /opt/football
+
+            IMAGE_TAG=${{ github.event.inputs.image-tag }}
+            echo "IMAGE_TAG=${IMAGE_TAG}" > .env.image
+            echo "Deploying tag: ${IMAGE_TAG}"
+
+            # Pull specific tagged images
+            docker pull ghcr.io/${{ github.repository }}:${IMAGE_TAG}
+            docker pull ghcr.io/${{ github.repository }}-worker:${IMAGE_TAG}
+
+            # Run DB migrations BEFORE switching traffic
+            docker compose -f docker/docker-compose.prod.yml run --rm \
+              -e DATABASE_URL=$DATABASE_URL \
+              -e IMAGE_TAG=${IMAGE_TAG} \
+              nextjs npx prisma migrate deploy
+
+            # Rolling update — one replica at a time
+            docker compose -f docker/docker-compose.prod.yml up -d \
+              --no-deps \
+              --scale nextjs=2 \
+              nextjs worker
+
+            # Health check — wait up to 60s
+            for i in $(seq 1 12); do
+              if curl -sf https://football.ir/api/v1/health; then
+                echo "Health check passed"
+                break
+              fi
+              echo "Waiting... attempt $i/12"
+              sleep 5
+            done || (echo "Health check failed" && docker compose logs nextjs && exit 1)
+
+            echo "Production deploy complete: ${IMAGE_TAG}"
+
+      - name: Notify deployment
+        if: always()
+        run: |
+          echo "Production deployment ${{ job.status }} for ${{ github.event.inputs.image-tag }}"
+          # Add Slack/email notification here if needed
