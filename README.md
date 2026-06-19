@@ -87,12 +87,21 @@ FOOTBALL_DATA_API_KEY=
 ### Setup database
 
 ```bash
-# Create tables
-npx prisma db push
-
-# Seed: 48 teams + 104 WC2026 matches
-npm run db:seed
+# One command: create tables + rankings view/trigger + seed (48 teams, 104 matches)
+npm run db:setup
 ```
+
+Or step by step:
+
+```bash
+npx prisma db push     # create tables
+npm run db:views       # create rankings_view materialized view + deadline trigger
+npm run db:seed        # seed 48 teams + 104 WC2026 matches
+```
+
+> **Note:** `prisma db push` does not run the raw-SQL migrations (the `rankings_view`
+> materialized view and the prediction-deadline trigger). `npm run db:views` applies them —
+> the rankings endpoints will 500 without it. In production use `npm run db:migrate:deploy` instead.
 
 ### Run
 
