@@ -53,7 +53,11 @@ export async function mockRequest(
   // ── Matches ────────────────────────────────────────────────
   if (segs[0] === 'matches' && segs.length === 1 && method === 'GET') {
     const stage = query.get('stage')
-    const list  = stage ? MOCK_MATCHES.filter(m => m.stage === stage) : MOCK_MATCHES
+    const list  = stage === 'KNOCKOUT'
+      ? MOCK_MATCHES.filter(m => m.stage !== 'group')
+      : stage
+      ? MOCK_MATCHES.filter(m => m.stage === stage)
+      : MOCK_MATCHES
     return { data: list, total: list.length, page: 1, limit: list.length, pages: 1 }
   }
   if (segs[0] === 'matches' && segs[1] && method === 'GET') {

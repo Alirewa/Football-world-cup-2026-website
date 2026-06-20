@@ -26,6 +26,14 @@ export const MOCK_TEAMS: Record<string, MockTeam> = {
   POR: team('POR', 'Portugal', 'پرتغال', 'pt'),
   NED: team('NED', 'Netherlands', 'هلند', 'nl'),
   JPN: team('JPN', 'Japan', 'ژاپن', 'jp'),
+  ITA: team('ITA', 'Italy', 'ایتالیا', 'it'),
+  MAR: team('MAR', 'Morocco', 'مراکش', 'ma'),
+  URU: team('URU', 'Uruguay', 'اروگوئه', 'uy'),
+  KOR: team('KOR', 'South Korea', 'کره جنوبی', 'kr'),
+  BEL: team('BEL', 'Belgium', 'بلژیک', 'be'),
+  CRO: team('CRO', 'Croatia', 'کرواسی', 'hr'),
+  SUI: team('SUI', 'Switzerland', 'سوئیس', 'ch'),
+  COL: team('COL', 'Colombia', 'کلمبیا', 'co'),
 }
 
 export interface MockMatch {
@@ -71,9 +79,26 @@ export const MOCK_MATCHES: MockMatch[] = [
   match('m7', 'GRP-A-M3', 'group', 'USA', 'CAN', '2026-06-17T19:00:00Z', 'Rose Bowl', 'Los Angeles', 'USA', null, null),
   match('m8', 'GRP-B-M3', 'group', 'GER', 'ENG', '2026-06-18T19:00:00Z', 'Levi’s Stadium', 'San Francisco', 'USA', null, null),
   match('m9', 'GRP-C-M3', 'group', 'NED', 'JPN', '2026-06-19T19:00:00Z', 'Empower Field', 'Denver', 'USA', null, null),
-  match('m10', 'R16-1', 'r16', 'ARG', 'ESP', '2026-06-30T19:00:00Z', 'Arrowhead Stadium', 'Kansas City', 'USA', null, null),
-  match('m11', 'QF-1', 'qf', 'BRA', 'FRA', '2026-07-04T19:00:00Z', 'AT&T Stadium', 'Dallas', 'USA', null, null),
-  match('m12', 'FINAL', 'final', 'ARG', 'BRA', '2026-07-19T19:00:00Z', 'MetLife Stadium', 'New York', 'USA', null, null),
+  // ── Round of 16 ──
+  match('m10', 'R16-1', 'r16', 'ARG', 'ESP', '2026-06-30T19:00:00Z', 'Arrowhead Stadium', 'Kansas City', 'USA', 2, 1),
+  match('m13', 'R16-2', 'r16', 'BRA', 'URU', '2026-06-30T23:00:00Z', 'Rose Bowl', 'Los Angeles', 'USA', 3, 0),
+  match('m14', 'R16-3', 'r16', 'FRA', 'MAR', '2026-07-01T19:00:00Z', 'AT&T Stadium', 'Dallas', 'USA', 1, 1),
+  match('m15', 'R16-4', 'r16', 'GER', 'KOR', '2026-07-01T23:00:00Z', 'MetLife Stadium', 'New York', 'USA', null, null),
+  match('m16', 'R16-5', 'r16', 'ENG', 'COL', '2026-07-02T19:00:00Z', 'SoFi Stadium', 'Los Angeles', 'USA', null, null),
+  match('m17', 'R16-6', 'r16', 'POR', 'CRO', '2026-07-02T23:00:00Z', 'Hard Rock Stadium', 'Miami', 'USA', null, null),
+  match('m18', 'R16-7', 'r16', 'NED', 'SUI', '2026-07-03T19:00:00Z', 'Levi’s Stadium', 'San Francisco', 'USA', null, null),
+  match('m19', 'R16-8', 'r16', 'USA', 'ITA', '2026-07-03T23:00:00Z', 'Estadio Azteca', 'Mexico City', 'Mexico', null, null),
+  // ── Quarter-finals ──
+  match('m11', 'QF-1', 'qf', 'BRA', 'FRA', '2026-07-04T19:00:00Z', 'AT&T Stadium', 'Dallas', 'USA', 2, 1),
+  match('m20', 'QF-2', 'qf', 'ARG', 'GER', '2026-07-05T19:00:00Z', 'Empower Field', 'Denver', 'USA', null, null),
+  match('m21', 'QF-3', 'qf', 'ENG', 'NED', '2026-07-05T23:00:00Z', 'BC Place', 'Vancouver', 'Canada', null, null),
+  match('m22', 'QF-4', 'qf', 'POR', 'USA', '2026-07-06T19:00:00Z', 'BMO Field', 'Toronto', 'Canada', null, null),
+  // ── Semi-finals ──
+  match('m23', 'SF-1', 'sf', 'BRA', 'ARG', '2026-07-10T19:00:00Z', 'MetLife Stadium', 'New York', 'USA', null, null),
+  match('m24', 'SF-2', 'sf', 'ENG', 'POR', '2026-07-10T23:00:00Z', 'AT&T Stadium', 'Dallas', 'USA', null, null),
+  // ── Third place & final ──
+  match('m25', '3RD', 'third_place', 'ARG', 'POR', '2026-07-18T19:00:00Z', 'Hard Rock Stadium', 'Miami', 'USA', null, null),
+  match('m12', 'FINAL', 'final', 'BRA', 'ENG', '2026-07-19T19:00:00Z', 'MetLife Stadium', 'New York', 'USA', null, null),
 ]
 
 export interface MockRankingRow {
