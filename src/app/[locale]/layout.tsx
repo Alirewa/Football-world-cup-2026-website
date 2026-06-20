@@ -3,15 +3,20 @@ import { Inter } from 'next/font/google'
 import localFont from 'next/font/local'
 import { ThemeProvider } from 'next-themes'
 import { NextIntlClientProvider } from 'next-intl'
-import { getMessages } from 'next-intl/server'
+import { getMessages, setRequestLocale } from 'next-intl/server'
 import { Toaster } from 'sonner'
 import { Navbar } from '@/components/layout/Navbar'
 import { BottomNav } from '@/components/layout/BottomNav'
 import { AuthHydrator } from '@/components/auth/AuthHydrator'
 import { PWAInstallPrompt } from '@/components/shared/PWAInstallPrompt'
 import { NavigationProgress } from '@/components/shared/NavigationProgress'
+import { DemoBanner } from '@/components/shared/DemoBanner'
 import { ProfileCompleteModal } from '@/components/profile/ProfileCompleteModal'
 import '@/app/globals.css'
+
+export function generateStaticParams() {
+  return [{ locale: 'fa' }]
+}
 
 const inter = Inter({
   subsets:  ['latin'],
@@ -64,6 +69,7 @@ export default async function LocaleLayout({
   params:    Promise<{ locale: string }>
 }) {
   const { locale } = await params
+  setRequestLocale(locale)
   const messages   = await getMessages()
   const dir        = 'rtl'
 
@@ -85,6 +91,7 @@ export default async function LocaleLayout({
         <ThemeProvider attribute="class" defaultTheme="dark" enableSystem={false}>
           <NextIntlClientProvider messages={messages} locale={locale}>
             <NavigationProgress />
+            <DemoBanner />
           <AuthHydrator />
             <div className="flex min-h-screen flex-col">
               <Navbar />

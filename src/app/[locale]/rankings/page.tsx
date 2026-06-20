@@ -1,9 +1,11 @@
-import { useTranslations } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { RankingTable } from '@/components/ranking/RankingTable'
 import { Trophy } from 'lucide-react'
 
-export default function RankingsPage() {
-  const t = useTranslations('ranking')
+export default async function RankingsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('ranking')
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 pb-24 md:pb-8">
       <div className="mb-8 flex items-center gap-3">

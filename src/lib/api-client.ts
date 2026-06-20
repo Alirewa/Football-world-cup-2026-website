@@ -22,8 +22,24 @@ type RequestOptions = RequestInit & {
   skipAuth?: boolean
 }
 
+const isDemoMode = process.env.NEXT_PUBLIC_DEMO_MODE === 'true'
+
 async function request<T>(url: string, options: RequestOptions = {}): Promise<T> {
   const { skipAuth, ...fetchOptions } = options
+
+  // GitHub Pages demo build has no backend — resolve against fixture data instead.
+  if (isDemoMode) {
+    const { mockRequest } = await import('@/lib/demo/mock-router')
+    const method = fetchOptions.method ?? 'GET'
+    const body   = typeof fetchOptions.body === 'string' ? JSON.parse(fetchOptions.body) : undefined
+    try {
+      return (await mockRequest(url, method, body)) as T
+    } catch (err) {
+      const status = (err as { status?: number }).status ?? 404
+      throw new ApiError(status, 'NOT_FOUND', 'این بخش در دموی استاتیک شبیه‌سازی نشده است')
+    }
+  }
+
   const store = useAuthStore.getState()
 
   const headers: Record<string, string> = {

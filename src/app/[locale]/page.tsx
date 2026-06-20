@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { useTranslations } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { Logo } from '@/components/shared/Logo'
 import { HomeMatches } from './_home/HomeMatches'
 import { HomeHowItWorks } from './_home/HomeHowItWorks'
@@ -7,8 +7,10 @@ import { HomeBracket } from './_home/HomeBracket'
 import { HomeGroups } from './_home/HomeGroups'
 import { ArrowRight, Star, Zap } from 'lucide-react'
 
-export default function HomePage() {
-  const t = useTranslations('home')
+export default async function HomePage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('home')
 
   const stats = [
     { value: '۴۸', label: 'بازی گروهی',     sub: '+ ۱۶ بازی حذفی' },

@@ -1,9 +1,11 @@
-import { useTranslations } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { AnnouncementsContent } from './_content'
 import { Bell } from 'lucide-react'
 
-export default function AnnouncementsPage() {
-  const t = useTranslations('announcements')
+export default async function AnnouncementsPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('announcements')
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 pb-24 md:pb-8">
       <div className="mb-8 flex items-center gap-3">

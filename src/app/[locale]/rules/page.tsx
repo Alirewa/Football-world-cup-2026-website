@@ -1,10 +1,12 @@
-import { useTranslations } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { RulesContent } from './_content'
 import Link from 'next/link'
 import { Gift, ArrowRight } from 'lucide-react'
 
-export default function RulesPage() {
-  const t = useTranslations('rules')
+export default async function RulesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('rules')
 
   return (
     <div className="mx-auto max-w-3xl px-4 py-8 pb-24 md:pb-8">

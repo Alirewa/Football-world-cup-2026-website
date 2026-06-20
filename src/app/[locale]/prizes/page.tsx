@@ -1,10 +1,12 @@
-import { useTranslations } from 'next-intl'
+import { getTranslations, setRequestLocale } from 'next-intl/server'
 import { PrizesContent } from './_content'
 import Link from 'next/link'
 import { BookOpen, ArrowRight } from 'lucide-react'
 
-export default function PrizesPage() {
-  const t = useTranslations('prizes')
+export default async function PrizesPage({ params }: { params: Promise<{ locale: string }> }) {
+  const { locale } = await params
+  setRequestLocale(locale)
+  const t = await getTranslations('prizes')
 
   return (
     <div className="min-h-screen">
